@@ -11,15 +11,15 @@
 
 #ifdef DFROBOT_DRIVER
 void initMotorController(){
-    digitalWrite(LEFT_MOTOR_ENABLE , LOW);
-    pinMode(LEFT_MOTOR_ENABLE , OUTPUT);
-    pinMode(LEFT_MOTOR_DIRECTION , OUTPUT);
-    digitalWrite(RIGHT_MOTOR_ENABLE , LOW);
-    pinMode(RIGHT_MOTOR_ENABLE , OUTPUT);
-    pinMode(RIGHT_MOTOR_DIRECTION , OUTPUT);
+    digitalWrite(LEFT_MOTOR_ENABLE, LOW);
+    pinMode(LEFT_MOTOR_ENABLE, OUTPUT);
+    pinMode(LEFT_MOTOR_DIRECTION, OUTPUT);
+    digitalWrite(RIGHT_MOTOR_ENABLE, LOW);
+    pinMode(RIGHT_MOTOR_ENABLE, OUTPUT);
+    pinMode(RIGHT_MOTOR_DIRECTION, OUTPUT);
 }
 
-void setMotorSpeed(int i , int spd){
+void setMotorSpeed(int i, int spd){
     unsigned char reverse = 0;
 
     if(spd < 0){
@@ -30,23 +30,38 @@ void setMotorSpeed(int i , int spd){
         spd = 255;
     if(i == LEFT){
         if(reverse == 0){
-            digitalWrite(LEFT_MOTOR_DIRECTION , LOW);
+            digitalWrite(LEFT_MOTOR_DIRECTION, LOW);
         } else if(reverse == 1){
-            digitalWrite(LEFT_MOTOR_DIRECTION , HIGH);
-        }analogWrite(LEFT_MOTOR_ENABLE , spd);
+            digitalWrite(LEFT_MOTOR_DIRECTION, HIGH);
+        }analogWrite(LEFT_MOTOR_ENABLE, spd);
     } else /*if (i == RIGHT) //no need for condition*/{
         if(reverse == 0){
-            digitalWrite(RIGHT_MOTOR_DIRECTION , LOW);
+            digitalWrite(RIGHT_MOTOR_DIRECTION, LOW);
         } else if(reverse == 1){
-            digitalWrite(RIGHT_MOTOR_DIRECTION , HIGH);
-        }analogWrite(RIGHT_MOTOR_ENABLE , spd);
+            digitalWrite(RIGHT_MOTOR_DIRECTION, HIGH);
+        }analogWrite(RIGHT_MOTOR_ENABLE, spd);
     }
 }
-void setMotorSpeeds(int leftSpeed , int rightSpeed){
-    setMotorSpeed(LEFT , leftSpeed);
-    setMotorSpeed(RIGHT , rightSpeed);
+void setMotorSpeeds(int leftSpeed, int rightSpeed){
+    setMotorSpeed(LEFT, leftSpeed);
+    setMotorSpeed(RIGHT, rightSpeed);
 }
-
+#elif defined(CYTRON_DRIVER)
+#include "CytronMotorDriver.h"
+CytronMD leftMotor(PWM_DIR, LEFT_MOTOR_PWM, LEFT_MOTOR_DIRECTION);  // PWM 1 = Pin 3, DIR 1 = Pin 4.
+CytronMD rightMotor(PWM_DIR, RIGHT_MOTOR_PWM, RIGHT_MOTOR_DIRECTION); // PWM 2 = Pin 9, DIR 2 = Pin 10.
+void initMotorController(){}
+void setMotorSpeed(int i, int spd){
+    if(i == LEFT){
+        leftMotor.setSpeed(spd);
+    } else{
+        rightMotor.setSpeed(spd);
+    }
+}
+void setMotorSpeeds(int leftSpeed, int rightSpeed){
+    leftMotor.setSpeed(leftSpeed);
+    rightMotor.setSpeed(rightSpeed);
+}
 #else
 #error A motor driver must be selected!
 #endif
