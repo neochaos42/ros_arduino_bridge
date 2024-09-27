@@ -3,18 +3,18 @@
    *************************************************************/
 
 
-#ifdef DFROBOT_DRIVER
-#define RIGHT_MOTOR_ENABLE 10
-#define LEFT_MOTOR_ENABLE 11
-#define RIGHT_MOTOR_DIRECTION 12
-#define LEFT_MOTOR_DIRECTION 13
-#elif defined(CYTRON_DRIVER)
-#define RIGHT_MOTOR_PWM 10
-#define LEFT_MOTOR_PWM 12
-#define RIGHT_MOTOR_DIRECTION 11
-#define LEFT_MOTOR_DIRECTION 13
+
+#ifdef CYTRON_DRIVER
+  #define FRONT_RIGHT_MOTOR_PWM 10
+  #define FRONT_LEFT_MOTOR_PWM 12
+  #define FRONT_RIGHT_MOTOR_DIRECTION 11
+  #define FRONT_LEFT_MOTOR_DIRECTION 13
+  #define BACK_RIGHT_MOTOR_PWM 10
+  #define BACK_LEFT_MOTOR_PWM 12
+  #define BACK_RIGHT_MOTOR_DIRECTION 11
+  #define BACK_LEFT_MOTOR_DIRECTION 13
 #endif
 
 void initMotorController();
 void setMotorSpeed(int i, int spd);
-void setMotorSpeeds(int leftSpeed, int rightSpeed);
+void setMotorSpeeds(int frontLeftSpeed, int frontRightSpeed, int backLeftSpeed, int backRightSpeed);

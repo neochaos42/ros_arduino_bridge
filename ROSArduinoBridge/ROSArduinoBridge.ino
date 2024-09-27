@@ -114,7 +114,7 @@ long lastMotorCommand = AUTO_STOP_INTERVAL;
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
-int index = 0;
+int localIndex = 0;
 
 // Variable to hold an input character
 char chr;
@@ -138,7 +138,7 @@ void resetCommand(){
   arg1 = 0;
   arg2 = 0;
   arg = 0;
-  index = 0;
+  localIndex = 0;
 }
 
 /* Run a command.  Commands are defined in commands.h */
@@ -189,9 +189,13 @@ int runCommand(){
 
 #ifdef USE_BASE
     case READ_ENCODERS:
-      Serial.print(readEncoder(LEFT));
+      Serial.print(readEncoder(FRONT_LEFT));
       Serial.print(" ");
-      Serial.println(readEncoder(RIGHT));
+      Serial.println(readEncoder(FRONT_RIGHT));
+      Serial.print(" ");
+      Serial.print(readEncoder(BACK_LEFT));
+      Serial.print(" ");
+      Serial.println(readEncoder(BACK_RIGHT));
       break;
     case RESET_ENCODERS:
       resetEncoders();
@@ -202,12 +206,14 @@ int runCommand(){
       /* Reset the auto stop timer */
       lastMotorCommand = millis();
       if(arg1 == 0 && arg2 == 0){
-        setMotorSpeeds(0, 0);
+        setMotorSpeeds(0, 0, 0, 0);
         resetPID();
         moving = 0;
       } else moving = 1;
-      leftPID.TargetTicksPerFrame = arg1;
-      rightPID.TargetTicksPerFrame = arg2;
+      frontLeftPID.TargetTicksPerFrame = arg1;
+      frontRightPID.TargetTicksPerFrame = arg2;
+      backLeftPID.TargetTicksPerFrame = arg1;
+      backRightPID.TargetTicksPerFrame = arg2;
       Serial.println("OK");
       break;
     case MOTOR_RAW_PWM:
@@ -215,11 +221,11 @@ int runCommand(){
       lastMotorCommand = millis();
       resetPID();
       moving = 0; // Sneaky way to temporarily disable the PID
-      setMotorSpeeds(arg1, arg2);
+      setMotorSpeeds(arg1, arg2, arg1, arg2);
       Serial.println("OK");
       break;
     case UPDATE_PID:
-      while((str = strtok_r(p, ":", &p)) != '\0'){
+      while((str = strtok_r(p, ":", &p)) != nullptr){
         pid_args[i] = atoi(str);
         i++;
       }
@@ -242,27 +248,6 @@ void setup(){
 
 // Initialize the motor controller if used */
 #ifdef USE_BASE
-#ifdef ARDUINO_ENC_COUNTER
-  //set as inputs
-  DDRD &= ~(1 << LEFT_ENC_PIN_A);
-  DDRD &= ~(1 << LEFT_ENC_PIN_B);
-  DDRC &= ~(1 << RIGHT_ENC_PIN_A);
-  DDRC &= ~(1 << RIGHT_ENC_PIN_B);
-
-  //enable pull up resistors
-  PORTD |= (1 << LEFT_ENC_PIN_A);
-  PORTD |= (1 << LEFT_ENC_PIN_B);
-  PORTC |= (1 << RIGHT_ENC_PIN_A);
-  PORTC |= (1 << RIGHT_ENC_PIN_B);
-
-  // tell pin change mask to listen to left encoder pins
-  PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B);
-  // tell pin change mask to listen to right encoder pins
-  PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B);
-
-  // enable PCINT1 and PCINT2 interrupt in the general interrupt mask
-  PCICR |= (1 << PCIE1) | (1 << PCIE2);
-#endif
   initMotorController();
   resetPID();
 #endif
@@ -291,8 +276,8 @@ void loop(){
 
     // Terminate a command with a CR
     if(chr == 13){
-      if(arg == 1) argv1[index] = NULL;
-      else if(arg == 2) argv2[index] = NULL;
+      if(arg == 1) argv1[localIndex] = NULL;
+      else if(arg == 2) argv2[localIndex] = NULL;
       runCommand();
       resetCommand();
     }
@@ -301,9 +286,9 @@ void loop(){
       // Step through the arguments
       if(arg == 0) arg = 1;
       else if(arg == 1){
-        argv1[index] = NULL;
+        argv1[localIndex] = NULL;
         arg = 2;
-        index = 0;
+        localIndex = 0;
       }
       continue;
     } else{
@@ -312,11 +297,11 @@ void loop(){
         cmd = chr;
       } else if(arg == 1){
         // Subsequent arguments can be more than one character
-        argv1[index] = chr;
-        index++;
+        argv1[localIndex] = chr;
+        localIndex++;
       } else if(arg == 2){
-        argv2[index] = chr;
-        index++;
+        argv2[localIndex] = chr;
+        localIndex++;
       }
     }
   }
@@ -331,7 +316,7 @@ void loop(){
   // Check to see if we have exceeded the auto-stop interval
   if((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL){
     ;
-    setMotorSpeeds(0, 0);
+    setMotorSpeeds(0, 0, 0, 0);
     moving = 0;
   }
 #endif

@@ -10,78 +10,56 @@
 #ifdef USE_BASE
 
 
-#ifdef ARDUINO_ENC_COUNTER
-volatile long left_enc_pos = 0L;
-volatile long right_enc_pos = 0L;
-static const int8_t ENC_STATES[] = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // encoder lookup table
-
-/* Interrupt routine for LEFT encoder, taking care of actual counting */
-ISR(PCINT2_vect){
-    static uint8_t enc_last = 0;
-
-    enc_last <<= 2;                     // shift previous state two places
-    enc_last |= (PIND & (3 << 2)) >> 2; // read the current state into lowest 2 bits
-
-    left_enc_pos += ENC_STATES[(enc_last & 0x0f)];
-}
-
-/* Interrupt routine for RIGHT encoder, taking care of actual counting */
-ISR(PCINT1_vect){
-    static uint8_t enc_last = 0;
-
-    enc_last <<= 2;                     // shift previous state two places
-    enc_last |= (PINC & (3 << 4)) >> 4; // read the current state into lowest 2 bits
-
-    right_enc_pos += ENC_STATES[(enc_last & 0x0f)];
-}
-
-/* Wrap the encoder reading function */
-long readEncoder(int i){
-    if(i == LEFT){
-        return left_enc_pos;
-    } else{
-        return right_enc_pos;
-    }
-}
-  /* Wrap the encoder reset function */
-void resetEncoder(int i){
-    if(i == LEFT){
-        left_enc_pos = 0L;
-        return;
-    } else{
-        right_enc_pos = 0L;
-        return;
-    }
-}
-#elif defined(ONBOARD_ENC_COUNTER)
+#ifdef ONBOARD_ENC_COUNTER
 #include <Encoder.h>
-Encoder encLeft(LEFT_ENC_PIN_A , LEFT_ENC_PIN_B);
-Encoder encRight(RIGHT_ENC_PIN_A , RIGHT_ENC_PIN_B);
-volatile long positionLeft = -999;
-volatile long positionRight = -999;
-
+Encoder encFrontLeft(FRONT_LEFT_ENC_PIN_A , FRONT_LEFT_ENC_PIN_B);
+Encoder encFrontRight(FRONT_RIGHT_ENC_PIN_A , FRONT_RIGHT_ENC_PIN_B);
+Encoder encBackLeft(BACK_LEFT_ENC_PIN_A , BACK_LEFT_ENC_PIN_B);
+Encoder encBackRight(BACK_RIGHT_ENC_PIN_A , BACK_RIGHT_ENC_PIN_B);
+volatile long positionFrontLeft = -999;
+volatile long positionFrontRight = -999;
+volatile long positionBackLeft = -999;
+volatile long positionBackRight = -999;
 long readEncoder(int i){
-    if(i == LEFT){
-        long newPositionLeft = encLeft.read();
-        if(newPositionLeft != positionLeft){
-            positionLeft = newPositionLeft;
-        }return newPositionLeft;
+    if(i == FRONT_LEFT){
+        long newPositionFrontLeft = encFrontLeft.read();
+        if(newPositionFrontLeft != positionFrontLeft){
+            positionFrontLeft = newPositionFrontLeft;
+        }return newPositionFrontLeft;
+    } else if(i == FRONT_RIGHT){
+        long newPositionFrontRight = encFrontRight.read();
+        if(newPositionFrontRight != positionFrontRight){
+            positionFrontRight = newPositionFrontRight;
+        }return newPositionFrontRight;
+    } if(i == BACK_LEFT){
+        long newPositionBackLeft = encBackLeft.read();
+        if(newPositionBackLeft != positionBackLeft){
+            positionBackLeft = newPositionBackLeft;
+        }return newPositionBackLeft;
     } else{
-        long newPositionRight = encRight.read();
-        if(newPositionRight != positionRight){
-            positionRight = newPositionRight;
-        }return newPositionRight;
+        long newPositionBackRight = encBackRight.read();
+        if(newPositionBackRight != positionBackRight){
+            positionBackRight = newPositionBackRight;
+        }return newPositionBackRight;
     }
 }
   /* Wrap the encoder reset function */
 void resetEncoder(int i){
-    if(i == LEFT){
-        positionLeft = 0L;
-        encLeft.write(0);
+    if(i == FRONT_LEFT){
+        positionFrontLeft = 0L;
+        encFrontLeft.write(0);
+        return;
+    } else if (i == FRONT_RIGHT){
+        positionFrontRight = 0L;
+        encFrontRight.write(0);
+        return;
+    } else if(i == BACK_LEFT){
+        positionBackLeft = 0L;
+        encBackLeft.write(0);
         return;
     } else{
-        positionRight = 0L;
-        encRight.write(0);
+        positionBackRight = 0L;
+        encBackRight.write(0);
         return;
     }
 }
@@ -91,8 +69,10 @@ void resetEncoder(int i){
 
 /* Wrap the encoder reset function */
 void resetEncoders(){
-    resetEncoder(LEFT);
-    resetEncoder(RIGHT);
+    resetEncoder(FRONT_LEFT);
+    resetEncoder(FRONT_RIGHT);
+    resetEncoder(BACK_LEFT);
+    resetEncoder(BACK_RIGHT);
 }
 
 #endif
