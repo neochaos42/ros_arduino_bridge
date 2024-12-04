@@ -62,7 +62,7 @@ void resetPID(){
    frontRightPID.PrevEnc = frontRightPID.Encoder;
    frontRightPID.output = 0;
    frontRightPID.PrevInput = 0;
-   frontRightPID.ITerm = 0;\
+   frontRightPID.ITerm = 0;
 
    backLeftPID.TargetTicksPerFrame = 0.0;
    backLeftPID.Encoder = readEncoder(BACK_LEFT);
@@ -122,8 +122,8 @@ void updatePID() {
   /* Read the encoders */
   frontLeftPID.Encoder = readEncoder(FRONT_LEFT);
   frontRightPID.Encoder = readEncoder(FRONT_RIGHT);
-  backLeftPID.Encoder = readEncoder(FRONT_LEFT);
-  backRightPID.Encoder = readEncoder(FRONT_RIGHT);
+  backLeftPID.Encoder = readEncoder(BACK_LEFT);
+  backRightPID.Encoder = readEncoder(BACK_RIGHT);
   /* If we're not moving there is nothing more to do */
   if (!moving){
     /*

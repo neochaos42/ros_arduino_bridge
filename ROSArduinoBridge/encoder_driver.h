@@ -14,7 +14,7 @@
   #define BACK_RIGHT_ENC_PIN_B 2 //good 3
 #endif
 
-long readEncoder(int i);
-void resetEncoder(int i);
+long readEncoder(int encoderID);
+void resetEncoder(int encoderID) ;
 void resetEncoders();
 
